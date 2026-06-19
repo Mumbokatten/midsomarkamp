@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Midsommar-kamp</title>
+<style>
+  :root{
+    --sky:#5b9bd5;        /* midsommar blue */
+    --sky-deep:#3f7cb8;
+    --sun:#f7d44c;        /* yellow */
+    --sun-deep:#e9b824;
+    --cream:#fbf7ec;      /* paper white */
+    --leaf:#7aa05a;       /* green accent */
+    --leaf-deep:#5c8042;
+    --ink:#2c3a2e;        /* dark green-brown text */
+    --rose:#e88aa0;       /* flower pink */
+    --gold:#e8b923;
+    --silver:#b9c2cc;
+    --bronze:#cd8a52;
+    --shadow:rgba(44,58,46,.16);
+    --line:rgba(44,58,46,.12);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 12% 8%, rgba(247,212,76,.35), transparent 40%),
+      radial-gradient(circle at 88% 4%, rgba(232,138,160,.28), transparent 38%),
+      linear-gradient(180deg,#dcebef 0%, #eaf3fb 22%, var(--cream) 60%);
+    min-height:100vh;
+    padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 24px);
+  }
+
+  /* ---------- header ---------- */
+  header{
+    text-align:center;
+    padding:26px 18px 14px;
+    position:relative;
+  }
+  .garland{font-size:24px;letter-spacing:6px;line-height:1;opacity:.95;}
+  h1{
+    margin:6px 0 2px;
+    font-size:clamp(30px,9vw,46px);
+    font-weight:800;
+    letter-spacing:-.5px;
+    color:var(--sky-deep);
+    text-shadow:1px 2px 0 #fff, 2px 4px 0 var(--shadow);
+  }
+  h1 .sun-dot{color:var(--sun-deep);text-shadow:1px 2px 0 #fff;}
+  .tagline{font-size:14px;color:var(--leaf-deep);font-weight:600;margin-top:2px;}
+
+  /* ---------- card wrapper ---------- */
+  .wrap{max-width:920px;margin:0 auto;padding:0 12px;}
+  .card{
+    background:var(--cream);
+    border:2px solid #fff;
+    border-radius:20px;
+    box-shadow:0 10px 30px var(--shadow);
+    padding:16px 14px;
+    margin-bottom:16px;
+  }
+  .card h2{
+    margin:0 0 12px;
+    font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:1px;
+    color:var(--leaf-deep);
+    display:flex;align-items:center;gap:8px;
+  }
+
+  /* ---------- add player ---------- */
+  .add-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .emoji-pick{
+    display:flex;gap:4px;flex-wrap:wrap;width:100%;margin-bottom:10px;
+  }
+  .emoji-pick button{
+    font-size:22px;width:42px;height:42px;border-radius:12px;
+    border:2px solid transparent;background:#fff;box-shadow:0 2px 6px var(--shadow);
+    cursor:pointer;transition:transform .12s, border-color .12s;
+  }
+  .emoji-pick button.sel{border-color:var(--sun-deep);background:#fff8e0;transform:scale(1.08);}
+  input[type=text]{
+    flex:1;min-width:140px;
+    font-size:17px;padding:13px 14px;border-radius:13px;
+    border:2px solid var(--line);background:#fff;color:var(--ink);
+    font-family:inherit;
+  }
+  input[type=text]:focus{outline:none;border-color:var(--sky);}
+  .btn{
+    font-family:inherit;font-weight:800;font-size:16px;cursor:pointer;
+    border:none;border-radius:13px;padding:13px 18px;color:#fff;
+    box-shadow:0 4px 10px var(--shadow);transition:transform .1s, filter .1s;
+  }
+  .btn:active{transform:translateY(1px) scale(.99);}
+  .btn-add{background:linear-gradient(180deg,var(--leaf),var(--leaf-deep));}
+  .btn-sky{background:linear-gradient(180deg,var(--sky),var(--sky-deep));}
+  .btn-sun{background:linear-gradient(180deg,var(--sun),var(--sun-deep));color:var(--ink);}
+  .btn-rose{background:linear-gradient(180deg,#ef9bb0,#d96f8a);}
+  .btn-ghost{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 2px var(--line);}
+  .hint{font-size:13px;color:#8a8475;margin-top:8px;}
+  .err{color:#c0392b;font-weight:700;font-size:14px;margin-top:8px;min-height:18px;}
+
+  /* ---------- scoreboard ---------- */
+  .board-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:14px;}
+  table{border-collapse:separate;border-spacing:0;width:100%;min-width:560px;}
+  thead th{
+    background:linear-gradient(180deg,var(--sky),var(--sky-deep));
+    color:#fff;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
+    padding:11px 6px;text-align:center;position:sticky;top:0;
+  }
+  thead th:first-child{text-align:left;padding-left:12px;border-top-left-radius:12px;}
+  thead th:last-child{border-top-right-radius:12px;}
+  .col-total{background:linear-gradient(180deg,var(--sun),var(--sun-deep))!important;color:var(--ink)!important;}
+  tbody td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--line);background:#fff;}
+  tbody tr:last-child td{border-bottom:none;}
+  .pname{
+    text-align:left;padding-left:10px;font-weight:800;font-size:15px;white-space:nowrap;
+    display:flex;align-items:center;gap:7px;
+  }
+  .pname .av{font-size:20px;}
+  .rank-badge{font-size:18px;width:22px;display:inline-block;text-align:center;}
+  tr.r1 td{background:linear-gradient(90deg,#fff7d6,#fffdf3);}
+  tr.r2 td{background:linear-gradient(90deg,#f1f4f7,#fdfdfe);}
+  tr.r3 td{background:linear-gradient(90deg,#fbeede,#fffdfa);}
+
+  /* score stepper cell */
+  .cell{display:flex;align-items:center;justify-content:center;gap:2px;}
+  .score-val{
+    min-width:30px;font-weight:800;font-size:17px;color:var(--ink);
+    display:inline-block;
+  }
+  .star{color:var(--sun-deep);font-size:13px;margin-left:1px;}
+  .step{
+    width:26px;height:26px;border-radius:8px;border:none;cursor:pointer;
+    font-size:16px;font-weight:900;line-height:1;color:#fff;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .step.minus{background:#d98a9a;}
+  .step.plus{background:var(--leaf);}
+  .step:disabled{opacity:.3;cursor:default;}
+  .total-val{font-weight:900;font-size:19px;color:var(--sky-deep);}
+  .rmv{background:none;border:none;font-size:17px;cursor:pointer;opacity:.55;padding:4px;}
+  .rmv:active{opacity:1;}
+
+  .empty{
+    text-align:center;color:#8a8475;font-size:15px;padding:24px 8px;font-weight:600;
+  }
+
+  /* ---------- footer actions ---------- */
+  .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+  .actions .btn{flex:1;min-width:150px;}
+
+  /* ---------- modal ---------- */
+  .overlay{
+    position:fixed;inset:0;background:rgba(44,58,46,.55);
+    display:none;align-items:center;justify-content:center;padding:22px;z-index:50;
+    backdrop-filter:blur(2px);
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:var(--cream);border-radius:20px;padding:24px 22px;max-width:380px;width:100%;
+    box-shadow:0 20px 50px rgba(0,0,0,.3);text-align:center;
+  }
+  .modal p{font-size:17px;font-weight:600;margin:0 0 18px;}
+  .modal .actions{margin-top:4px;}
+
+  /* ---------- winner screen ---------- */
+  .winner-screen{
+    position:fixed;inset:0;z-index:60;display:none;flex-direction:column;
+    align-items:center;justify-content:flex-start;overflow-y:auto;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(247,212,76,.5), transparent 45%),
+      linear-gradient(180deg,#cfe4f7,#eaf3fb 50%, var(--cream));
+    padding:calc(env(safe-area-inset-top) + 28px) 18px 40px;
+  }
+  .winner-screen.show{display:flex;}
+  .ws-garland{font-size:30px;letter-spacing:8px;}
+  .ws-title{font-size:30px;font-weight:800;color:var(--sky-deep);margin:8px 0 2px;text-shadow:1px 2px 0 #fff;}
+  .ws-sub{color:var(--leaf-deep);font-weight:700;margin-bottom:18px;}
+  .ws-winner{
+    background:var(--cream);border-radius:22px;padding:22px 26px;margin-bottom:24px;
+    box-shadow:0 14px 36px var(--shadow);border:3px solid var(--sun);text-align:center;
+    max-width:340px;width:100%;
+  }
+  .ws-crown{font-size:46px;}
+  .ws-av{font-size:60px;line-height:1;margin:4px 0;}
+  .ws-name{font-size:30px;font-weight:900;color:var(--ink);}
+  .ws-pts{font-size:17px;font-weight:700;color:var(--leaf-deep);margin-top:4px;}
+
+  .podium{display:flex;align-items:flex-end;gap:10px;justify-content:center;margin-bottom:26px;}
+  .pod{display:flex;flex-direction:column;align-items:center;width:90px;}
+  .pod .pav{font-size:30px;}
+  .pod .pnm{font-weight:800;font-size:14px;text-align:center;margin:2px 0;line-height:1.1;}
+  .pod .ppt{font-size:13px;color:var(--leaf-deep);font-weight:700;}
+  .pod .block{
+    width:100%;border-radius:12px 12px 0 0;margin-top:6px;
+    display:flex;align-items:flex-start;justify-content:center;padding-top:6px;
+    font-size:22px;font-weight:900;color:#fff;
+  }
+  .pod.first .block{height:108px;background:linear-gradient(180deg,#f3cf4a,var(--gold));}
+  .pod.second .block{height:80px;background:linear-gradient(180deg,#cdd5dd,var(--silver));}
+  .pod.third .block{height:58px;background:linear-gradient(180deg,#d99c6a,var(--bronze));}
+
+  /* confetti */
+  .confetti{position:fixed;top:-12px;width:11px;height:16px;z-index:61;border-radius:2px;pointer-events:none;}
+
+  @media (max-width:480px){
+    .actions .btn{font-size:15px;padding:13px 12px;}
+    thead th{font-size:11px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="garland">🌼 🍓 ☀️ 🌿 🌸 ☀️ 🌼</div>
+  <h1>Midsommar<span class="sun-dot">-</span>kamp</h1>
+  <div class="tagline">Glad midsommar! Dela ut 1–5 poäng per gren ✨</div>
+</header>
+
+<div class="wrap">
+
+  <!-- ADD PLAYER -->
+  <div class="card">
+    <h2>🌿 Lägg till deltagare</h2>
+    <div class="emoji-pick" id="emojiPick"></div>
+    <div class="add-row">
+      <input type="text" id="nameInput" placeholder="Namn…" maxlength="18" autocomplete="off">
+      <button class="btn btn-add" id="addBtn">Lägg till</button>
+    </div>
+    <div class="err" id="addErr"></div>
+    <div class="hint">Max 10 deltagare. Välj gärna en emoji-figur först.</div>
+  </div>
+
+  <!-- SCOREBOARD -->
+  <div class="card">
+    <h2>🏆 Poängtavla</h2>
+    <div class="board-scroll">
+      <table id="board">
+        <thead><tr id="headRow"></tr></thead>
+        <tbody id="bodyRows"></tbody>
+      </table>
+    </div>
+    <div class="empty" id="emptyMsg">Inga deltagare än — lägg till några ovan för att börja! 🌼</div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="card">
+    <div class="actions">
+      <button class="btn btn-ghost" id="resetBtn">↺ Nollställ poäng</button>
+      <button class="btn btn-sun" id="winnerBtn">🏅 Avsluta &amp; kora vinnare</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <p id="modalText">Är du säker?</p>
+    <div class="actions">
+      <button class="btn btn-ghost" id="modalNo">Avbryt</button>
+      <button class="btn btn-rose" id="modalYes">Ja</button>
+    </div>
+  </div>
+</div>
+
+<!-- WINNER SCREEN -->
+<div class="winner-screen" id="winnerScreen">
+  <div class="ws-garland">🌼 ☀️ 🌸 ☀️ 🌼</div>
+  <div class="ws-title">Vinnaren är korad!</div>
+  <div class="ws-sub">Midsommar-kampens mästare 🥇</div>
+  <div class="ws-winner" id="wsWinner"></div>
+  <div class="podium" id="podium"></div>
+  <button class="btn btn-sky" id="backBtn" style="min-width:180px;">← Tillbaka</button>
+</div>
+
+<script>
+/* ---------------- data ---------------- */
+const DISCIPLINES = [
+  {key:'stege',   label:'Stege'},
+  {key:'boule',   label:'Boule'},
+  {key:'agg',     label:'Äggtransport'},
+  {key:'molkky',  label:'Mölkky'},
+  {key:'conn',    label:'Connections'}
+];
+const EMOJIS = ['🌼','🍓','☀️','🌿','🌸','🌷','🐸','🦋','🍃','🌻','⛅','🥨'];
+const MAXP = 10;
+const MAXSCORE = 5;
+
+let players = [];           // {id, name, emoji, scores:{key:val}}
+let nextId = 1;
+let chosenEmoji = EMOJIS[0];
+
+/* ---------------- build emoji picker ---------------- */
+const emojiPick = document.getElementById('emojiPick');
+EMOJIS.forEach((e,i)=>{
+  const b=document.createElement('button');
+  b.textContent=e;
+  if(i===0)b.classList.add('sel');
+  b.onclick=()=>{
+    chosenEmoji=e;
+    [...emojiPick.children].forEach(c=>c.classList.remove('sel'));
+    b.classList.add('sel');
+  };
+  emojiPick.appendChild(b);
+});
+
+/* ---------------- add player ---------------- */
+const nameInput=document.getElementById('nameInput');
+const addErr=document.getElementById('addErr');
+
+function addPlayer(){
+  const name=nameInput.value.trim();
+  addErr.textContent='';
+  if(!name){addErr.textContent='Skriv ett namn först.';return;}
+  if(players.length>=MAXP){addErr.textContent='Max 10 deltagare.';return;}
+  if(players.some(p=>p.name.toLowerCase()===name.toLowerCase())){
+    addErr.textContent='Det namnet finns redan.';return;
+  }
+  const scores={};
+  DISCIPLINES.forEach(d=>scores[d.key]=0);
+  players.push({id:nextId++,name,emoji:chosenEmoji,scores});
+  nameInput.value='';
+  render();
+}
+document.getElementById('addBtn').onclick=addPlayer;
+nameInput.addEventListener('keydown',e=>{if(e.key==='Enter')addPlayer();});
+
+/* ---------------- scoring ---------------- */
+function changeScore(id,key,delta){
+  const p=players.find(x=>x.id===id);
+  if(!p)return;
+  let v=p.scores[key]+delta;
+  if(v<0)v=0;
+  if(v>MAXSCORE)v=MAXSCORE;
+  p.scores[key]=v;
+  render();
+}
+function total(p){return DISCIPLINES.reduce((s,d)=>s+p.scores[d.key],0);}
+
+/* ---------------- render ---------------- */
+const headRow=document.getElementById('headRow');
+const bodyRows=document.getElementById('bodyRows');
+const emptyMsg=document.getElementById('emptyMsg');
+const boardEl=document.getElementById('board');
+
+function render(){
+  // header
+  headRow.innerHTML='<th>Deltagare</th>'+
+    DISCIPLINES.map(d=>`<th>${d.label}</th>`).join('')+
+    '<th class="col-total">Totalt</th><th></th>';
+
+  if(players.length===0){
+    boardEl.style.display='none';
+    emptyMsg.style.display='block';
+    bodyRows.innerHTML='';
+    return;
+  }
+  boardEl.style.display='';
+  emptyMsg.style.display='none';
+
+  // ranking by total desc
+  const ranked=[...players].sort((a,b)=>total(b)-total(a));
+  const rankOf={};
+  ranked.forEach((p,i)=>rankOf[p.id]=i);
+
+  // top score per discipline (only count >0)
+  const topPer={};
+  DISCIPLINES.forEach(d=>{
+    let mx=0;
+    players.forEach(p=>{if(p.scores[d.key]>mx)mx=p.scores[d.key];});
+    topPer[d.key]=mx;
+  });
+
+  bodyRows.innerHTML=ranked.map(p=>{
+    const r=rankOf[p.id];
+    const rowClass=r===0?'r1':r===1?'r2':r===2?'r3':'';
+    const badge=r===0?'👑':r===1?'🥈':r===2?'🥉':'';
+    const cells=DISCIPLINES.map(d=>{
+      const v=p.scores[d.key];
+      const isTop=v>0 && v===topPer[d.key];
+      return `<td><div class="cell">
+        <button class="step minus" ${v<=0?'disabled':''} onclick="changeScore(${p.id},'${d.key}',-1)">–</button>
+        <span class="score-val">${v}${isTop?'<span class="star">⭐</span>':''}</span>
+        <button class="step plus" ${v>=MAXSCORE?'disabled':''} onclick="changeScore(${p.id},'${d.key}',1)">+</button>
+      </div></td>`;
+    }).join('');
+    return `<tr class="${rowClass}">
+      <td class="pname"><span class="rank-badge">${badge}</span><span class="av">${p.emoji}</span>${escapeHtml(p.name)}</td>
+      ${cells}
+      <td><span class="total-val">${total(p)}</span></td>
+      <td><button class="rmv" onclick="askRemove(${p.id})">🗑️</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+/* ---------------- confirm modal ---------------- */
+const overlay=document.getElementById('overlay');
+const modalText=document.getElementById('modalText');
+let confirmAction=null;
+function confirmDialog(text,action){
+  modalText.textContent=text;
+  confirmAction=action;
+  overlay.classList.add('show');
+}
+document.getElementById('modalNo').onclick=()=>{overlay.classList.remove('show');confirmAction=null;};
+document.getElementById('modalYes').onclick=()=>{
+  if(confirmAction)confirmAction();
+  overlay.classList.remove('show');confirmAction=null;
+};
+
+function askRemove(id){
+  const p=players.find(x=>x.id===id);
+  if(!p)return;
+  confirmDialog(`Ta bort ${p.name}?`,()=>{
+    players=players.filter(x=>x.id!==id);
+    render();
+  });
+}
+
+document.getElementById('resetBtn').onclick=()=>{
+  if(players.length===0)return;
+  confirmDialog('Nollställ alla poäng till 0?',()=>{
+    players.forEach(p=>DISCIPLINES.forEach(d=>p.scores[d.key]=0));
+    render();
+  });
+};
+
+/* ---------------- winner screen ---------------- */
+const winnerScreen=document.getElementById('winnerScreen');
+document.getElementById('winnerBtn').onclick=()=>{
+  if(players.length===0){
+    confirmDialog('Lägg till deltagare först! 🌼',()=>{});
+    document.getElementById('modalNo').style.display='none';
+    return;
+  }
+  document.getElementById('modalNo').style.display='';
+  showWinner();
+};
+
+function showWinner(){
+  const ranked=[...players].sort((a,b)=>total(b)-total(a));
+  const w=ranked[0];
+  document.getElementById('wsWinner').innerHTML=`
+    <div class="ws-crown">👑</div>
+    <div class="ws-av">${w.emoji}</div>
+    <div class="ws-name">${escapeHtml(w.name)}</div>
+    <div class="ws-pts">${total(w)} poäng</div>`;
+
+  const order=[1,0,2]; // silver, gold, bronze visual order
+  const cls=['second','first','third'];
+  const medal=['🥈','🥇','🥉'];
+  const podium=document.getElementById('podium');
+  podium.innerHTML=order.map((idx,i)=>{
+    const p=ranked[idx];
+    if(!p)return '';
+    return `<div class="pod ${cls[i]}">
+      <div class="pav">${p.emoji}</div>
+      <div class="pnm">${escapeHtml(p.name)}</div>
+      <div class="ppt">${total(p)} p</div>
+      <div class="block">${medal[i]}</div>
+    </div>`;
+  }).join('');
+
+  winnerScreen.classList.add('show');
+  launchConfetti();
+}
+document.getElementById('backBtn').onclick=()=>winnerScreen.classList.remove('show');
+
+/* ---------------- confetti ---------------- */
+function launchConfetti(){
+  const colors=['#f7d44c','#5b9bd5','#e88aa0','#7aa05a','#ffffff','#e9b824'];
+  for(let i=0;i<70;i++){
+    const c=document.createElement('div');
+    c.className='confetti';
+    c.style.left=Math.random()*100+'vw';
+    c.style.background=colors[Math.floor(Math.random()*colors.length)];
+    const dur=2.6+Math.random()*2.2;
+    const delay=Math.random()*0.6;
+    const drift=(Math.random()*2-1)*120;
+    c.style.opacity='1';
+    document.body.appendChild(c);
+    c.animate([
+      {transform:`translate(0,0) rotate(0deg)`,opacity:1},
+      {transform:`translate(${drift}px,105vh) rotate(${720+Math.random()*360}deg)`,opacity:.9}
+    ],{duration:dur*1000,delay:delay*1000,easing:'cubic-bezier(.3,.6,.5,1)'});
+    setTimeout(()=>c.remove(),(dur+delay)*1000+100);
+  }
+}
+
+render();
+</script>
+</body>
+</html>
